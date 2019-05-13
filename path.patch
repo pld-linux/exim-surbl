@@ -1,0 +1,30 @@
+diff -urN exim_surbl-2.3.org/exim_surbl.pl exim_surbl-2.3/exim_surbl.pl
+--- exim_surbl-2.3.org/exim_surbl.pl	2012-03-07 04:16:45.000000000 +0100
++++ exim_surbl-2.3/exim_surbl.pl	2019-05-13 12:52:14.053011594 +0200
+@@ -35,7 +35,7 @@
+     # THIS VARIABLE MUST BE SET TO THE FULL PATH AND NAME OF THE FILE 
+     # CONTAINING THE TWO LEVEL TLD!
+     # ---------------------------------------------------------------------
+-    my $twotld_file = "/etc/exim/two-level-tlds";    
++    my $twotld_file = "/etc/exim-surbl/two-level-tlds";    
+     
+     # The following variable is the full path to the file containing the 
+     # three-level top level domains (TLD).
+@@ -43,7 +43,7 @@
+     # THIS VARIABLE MUST BE SET TO THE FULL PATH AND NAME OF THE FILE 
+     # CONTAINING THE THREE LEVEL TLD!
+     # ---------------------------------------------------------------------
+-    my $threetld_file = "/etc/exim/three-level-tlds";
++    my $threetld_file = "/etc/exim-surbl/three-level-tlds";
+ 
+     # The following variable is the full path to the file containing
+     # whitelist entries.  
+@@ -51,7 +51,7 @@
+     # THIS VARIABLE MUST BE SET TO THE FULL PATH AND NAME OF THE FILE 
+     # CONTAINING THE WHITELIST DOMAINS!
+     # ---------------------------------------------------------------------
+-    my $whitelist_file = "/etc/exim/surbl_whitelist.txt";
++    my $whitelist_file = "/etc/exim-surbl/surbl_whitelist.txt";
+     
+     # This variable defines the maximum MIME file size that will be checked
+     # if this script is called by the MIME ACL.  This is primarily to

@@ -1,0 +1,22 @@
+diff -urN exim_surbl-2.3.org/exim_surbl.pl exim_surbl-2.3/exim_surbl.pl
+--- exim_surbl-2.3.org/exim_surbl.pl	2019-05-13 13:28:21.937931916 +0200
++++ exim_surbl-2.3/exim_surbl.pl	2019-05-13 13:36:33.962564434 +0200
+@@ -91,7 +91,17 @@
+         # the return message for the SURBL lookup.
+         my @params = @_;
+         my $surbldomain = ".multi.surbl.org";
+-        @dnsbladdr=gethostbyname($params[0].$surbldomain);
++	my $res = Net::DNS::Resolver->new(
++		nameservers => [qw(8.8.8.8 8.8.4.4, 1.1.1.1, 1.0.0.1)],
++	);
++	my $reply = $res->search(@params[0].$surbldomain);
++	if ($reply) {
++		foreach my $rr ($reply->answer) {
++			next unless $rr->type eq "A";
++			print $rr->address, "\n";
++			@dnsbladdr = $rr->address;
++		}
++	}
+         # If gethostbyname() returned anything, build a return message.
+         $return_string = "";
+         if (scalar(@dnsbladdr) != 0) {

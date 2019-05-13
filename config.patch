@@ -1,0 +1,46 @@
+diff -urN exim_surbl-2.3.org/config.ini exim_surbl-2.3/config.ini
+--- exim_surbl-2.3.org/config.ini	1970-01-01 01:00:00.000000000 +0100
++++ exim_surbl-2.3/config.ini	2019-05-13 13:26:40.581571134 +0200
+@@ -0,0 +1,5 @@
++[config]
++max_file_size = 50000
++surbl_enable = 1
++uribl_enable = 1
++dbl_enable = 1
+diff -urN exim_surbl-2.3.org/exim_surbl.pl exim_surbl-2.3/exim_surbl.pl
+--- exim_surbl-2.3.org/exim_surbl.pl	2019-05-13 13:28:21.937931916 +0200
++++ exim_surbl-2.3/exim_surbl.pl	2019-05-13 13:28:43.838583229 +0200
+@@ -20,9 +20,13 @@
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
++use Config::IniFiles;
++
+ sub surblspamcheck
+ {
+ 
++    my $cfg = new Config::IniFiles -file => '/etc/exim-surbl/config.ini';
++
+ # Designed and written by Erik Mugele, 2004-2010,1http://www.teuton.org/~ejm
+ # Version 2.3-beta
+ #
+@@ -56,14 +60,14 @@
+     # This variable defines the maximum MIME file size that will be checked
+     # if this script is called by the MIME ACL.  This is primarily to
+     # keep the load down on the server.  Size is in bytes.
+-    my $max_file_size = 50000;
++    my $max_file_size = $cfg->val('config', 'max_file_size', 50000);
+     
+     # The following ariables enable or disable the SURBL, URIBL and DBL
+     # lookups.  Set to 1 to enable and 0 to disable.
+-    my $surbl_enable = 1;
+-    my $uribl_enable = 1;
+-    my $dbl_enable = 1;
+-    
++    my $surbl_enable = $cfg->val('config', 'surbl_enable', 1);
++    my $uribl_enable = $cfg->val('config', 'uribl_enable', 1);
++    my $dbl_enable = $cfg->val('config', 'dbl_enable', 1);;
++
+     # Check to see if a decode MIME attachment is being checked or 
+     # just a plain old text message with no attachments
+     my $exim_body = "";
