@@ -16,7 +16,7 @@ diff -urN exim_surbl-2.3.org/exim_surbl.pl exim_surbl-2.3/exim_surbl.pl
          my $surbldomain = ".multi.surbl.org";
 -        @dnsbladdr=gethostbyname($params[0].$surbldomain);
 +	my $res = Net::DNS::Resolver->new(
-+		nameservers => [qw(8.8.8.8 8.8.4.4, 1.1.1.1, 1.0.0.1)],
++		nameservers => ['8.8.8.8', '8.8.4.4', '1.1.1.1',  '1.0.0.1'],
 +	);
 +	my $reply = $res->search(@params[0].$surbldomain);
 +	if ($reply) {
