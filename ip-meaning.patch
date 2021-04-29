@@ -1,0 +1,41 @@
+diff -urN exim_surbl-2.3.org/exim_surbl.pl exim_surbl-2.3/exim_surbl.pl
+--- exim_surbl-2.3.org/exim_surbl.pl	2021-04-29 14:20:06.491533142 +0200
++++ exim_surbl-2.3/exim_surbl.pl	2021-04-29 14:29:08.875363883 +0200
+@@ -116,6 +116,10 @@
+         # If gethostbyname() returned anything, build a return message.
+         $return_string = "";
+         if (scalar(@dnsbladdr) != 0) {
++            if (inet_ntoa($dnsbladdr[0]) eq "127.0.0.1") {
++                # query blacklisted
++                return "";
++            }
+             $return_string = "Blacklisted URL in message. (".$params[0].") in";
+             @surblipaddr = unpack('C4',($dnsbladdr[4])[0]);
+             if ($surblipaddr[3] & 64) {
+@@ -152,6 +156,10 @@
+         if (scalar(@dnsbladdr) != 0) {
+             $return_string = "Blacklisted URL in message. (".$params[0].") in";
+             @ipaddr = unpack('C4',($dnsbladdr[0])[0]);
++            if ($ipaddr[3] & 1) {
++                # query blocked
++                return "";
++            }
+             if ($ipaddr[3] & 8) {
+                 $return_string .= " [red]";
+             }
+@@ -175,6 +183,15 @@
+         # If gethostbyname() returned anything, build a return message.
+         $return_string = "";
+         if (scalar(@dnsbladdr) != 0) {
++            my $ip = inet_ntoa($dnsbladdr[0]);
++            if ($ip eq "127.0.1.255") {
++                # query blocked
++                return "";
++            }
++            if (substr($ip, 0, length("127.0.1.")) ne "127.0.1.") {
++                # non blocked meaning of ip
++                return "";
++            }
+             $return_string = "Blacklisted URL in message: ".$params[0];
+             $return_string .= ". See http://www.spamhaus.org/lookup.lasso?dnsbl=domain.";
+         }
