@@ -1,31 +1,132 @@
 diff -urN exim_surbl-2.3.org/exim_surbl.pl exim_surbl-2.3/exim_surbl.pl
---- exim_surbl-2.3.org/exim_surbl.pl	2019-06-26 12:39:29.690473235 +0200
-+++ exim_surbl-2.3/exim_surbl.pl	2019-06-26 12:40:08.281619931 +0200
-@@ -20,6 +20,8 @@
- # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+--- exim_surbl-2.3.org/exim_surbl.pl	2021-04-29 14:34:34.375671999 +0200
++++ exim_surbl-2.3/exim_surbl.pl	2021-04-29 14:34:22.831973042 +0200
+@@ -21,6 +21,27 @@
  # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
+ use Config::IniFiles;
 +use Net::DNS::Resolver;
++use Socket;
 +
++sub getips
++{
++    my @params = @_;
++    my @addresses;
++    my $res = Net::DNS::Resolver->new(
++        nameservers => ['8.8.8.8', '8.8.4.4', '1.1.1.1',  '1.0.0.1'],
++    );
++    my $reply = $res->search($params[0], 'A');
++    if ($reply) {
++        foreach my $rr ($reply->answer) {
++            next unless $rr->type eq "A";
++            #print $rr->address, "\n";
++            push @addresses, inet_aton($rr->address);
++
++        }
++    }
++    return @addresses;
++}
+ 
  sub surblspamcheck
  {
- 
-@@ -91,7 +93,17 @@
+@@ -93,7 +114,7 @@
          # the return message for the SURBL lookup.
          my @params = @_;
          my $surbldomain = ".multi.surbl.org";
 -        @dnsbladdr=gethostbyname($params[0].$surbldomain);
-+	my $res = Net::DNS::Resolver->new(
-+		nameservers => ['8.8.8.8', '8.8.4.4', '1.1.1.1',  '1.0.0.1'],
-+	);
-+	my $reply = $res->search(@params[0].$surbldomain);
-+	if ($reply) {
-+		foreach my $rr ($reply->answer) {
-+			next unless $rr->type eq "A";
-+			print $rr->address, "\n";
-+			@dnsbladdr = $rr->address;
-+		}
-+	}
++        @dnsbladdr=getips($params[0].$surbldomain);
          # If gethostbyname() returned anything, build a return message.
          $return_string = "";
          if (scalar(@dnsbladdr) != 0) {
+@@ -127,12 +148,12 @@
+         # the return message for the URIBL check.
+         my @params = @_;
+         my $uribldomain = ".black.uribl.com";
+-        @dnsbladdr=gethostbyname($params[0].$uribldomain);
++        @dnsbladdr=getips($params[0].$uribldomain);
+         # If gethostbyname() returned anything, build a return message.
+         $return_string = "";
+         if (scalar(@dnsbladdr) != 0) {
+             $return_string = "Blacklisted URL in message. (".$params[0].") in";
+-            @ipaddr = unpack('C4',($dnsbladdr[4])[0]);
++            @ipaddr = unpack('C4',($dnsbladdr[0])[0]);
+             if ($ipaddr[3] & 8) {
+                 $return_string .= " [red]";
+             }
+@@ -152,7 +173,7 @@
+         # the return message for the Spamhaus DBL check.
+         my @params = @_;
+         my $dbldomain = ".dbl.spamhaus.org";
+-        @dnsbladdr=gethostbyname($params[0].$dbldomain);
++        @dnsbladdr=getips($params[0].$dbldomain);
+         # If gethostbyname() returned anything, build a return message.
+         $return_string = "";
+         if (scalar(@dnsbladdr) != 0) {
+diff -urN exim_surbl-2.3.org/public_resolvers.patch exim_surbl-2.3/public_resolvers.patch
+--- exim_surbl-2.3.org/public_resolvers.patch	1970-01-01 01:00:00.000000000 +0100
++++ exim_surbl-2.3/public_resolvers.patch	2021-04-29 14:20:15.018469445 +0200
+@@ -0,0 +1,64 @@
++diff -urN exim_surbl-2.3.org/exim_surbl.pl exim_surbl-2.3/exim_surbl.pl
++--- exim_surbl-2.3.org/exim_surbl.pl	2012-03-07 04:16:45.000000000 +0100
+++++ exim_surbl-2.3/exim_surbl.pl	2021-04-29 14:20:06.491533142 +0200
++@@ -19,6 +19,27 @@
++ # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+++use Net::DNS::Resolver;
+++use Socket;
+++
+++sub getips
+++{
+++    my @params = @_;
+++    my @addresses;
+++    my $res = Net::DNS::Resolver->new(
+++        nameservers => ['8.8.8.8', '8.8.4.4', '1.1.1.1',  '1.0.0.1'],
+++    );
+++    my $reply = $res->search($params[0], 'A');
+++    if ($reply) {
+++        foreach my $rr ($reply->answer) {
+++            next unless $rr->type eq "A";
+++            #print $rr->address, "\n";
+++            push @addresses, inet_aton($rr->address);
+++            return $rr->address;
+++        }
+++    }
+++    return @addresses;
+++}
++ 
++ sub surblspamcheck
++ {
++@@ -91,7 +112,7 @@
++         # the return message for the SURBL lookup.
++         my @params = @_;
++         my $surbldomain = ".multi.surbl.org";
++-        @dnsbladdr=gethostbyname($params[0].$surbldomain);
+++        @dnsbladdr=getips($params[0].$surbldomain);
++         # If gethostbyname() returned anything, build a return message.
++         $return_string = "";
++         if (scalar(@dnsbladdr) != 0) {
++@@ -125,12 +146,12 @@
++         # the return message for the URIBL check.
++         my @params = @_;
++         my $uribldomain = ".black.uribl.com";
++-        @dnsbladdr=gethostbyname($params[0].$uribldomain);
+++        @dnsbladdr=getips($params[0].$uribldomain);
++         # If gethostbyname() returned anything, build a return message.
++         $return_string = "";
++         if (scalar(@dnsbladdr) != 0) {
++             $return_string = "Blacklisted URL in message. (".$params[0].") in";
++-            @ipaddr = unpack('C4',($dnsbladdr[4])[0]);
+++            @ipaddr = unpack('C4',($dnsbladdr[0])[0]);
++             if ($ipaddr[3] & 8) {
++                 $return_string .= " [red]";
++             }
++@@ -150,7 +171,7 @@
++         # the return message for the Spamhaus DBL check.
++         my @params = @_;
++         my $dbldomain = ".dbl.spamhaus.org";
++-        @dnsbladdr=gethostbyname($params[0].$dbldomain);
+++        @dnsbladdr=getips($params[0].$dbldomain);
++         # If gethostbyname() returned anything, build a return message.
++         $return_string = "";
++         if (scalar(@dnsbladdr) != 0) {

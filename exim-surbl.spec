@@ -1,8 +1,7 @@
-%include	/usr/lib/rpm/macros.perl
 Summary:	Blocking Spam in Exim with URI Block Lists
 Name:		exim-surbl
 Version:	2.3
-Release:	4
+Release:	5
 License:	GPL
 Group:		Networking/Daemons/SMTP
 Source0:	https://www.teuton.org/~ejm/exim_surbl/exim_surbl-%{version}.tar.gz
@@ -10,10 +9,12 @@ Source0:	https://www.teuton.org/~ejm/exim_surbl/exim_surbl-%{version}.tar.gz
 Patch0:		path.patch
 Patch1:		config.patch
 Patch2:		public_resolvers.patch
+Patch3:		ip-meaning.patch
 URL:		https://www.teuton.org/~ejm/exim_surbl/
 Requires:	exim
 Requires:	perl-Config-IniFiles
 Requires:	perl-Net-DNS
+BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -32,6 +33,7 @@ message.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 
