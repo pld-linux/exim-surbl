@@ -1,11 +1,11 @@
 Summary:	Blocking Spam in Exim with URI Block Lists
 Name:		exim-surbl
-Version:	2.3
-Release:	5
+Version:	2.4
+Release:	1
 License:	GPL
 Group:		Networking/Daemons/SMTP
 Source0:	https://www.teuton.org/~ejm/exim_surbl/exim_surbl-%{version}.tar.gz
-# Source0-md5:	fe23aad8d686ef9c48f9e82461a2f1bc
+# Source0-md5:	8aefd22e5c19207b0452e75aa016020f
 Patch0:		path.patch
 Patch1:		config.patch
 Patch2:		public_resolvers.patch
